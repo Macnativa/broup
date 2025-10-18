@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, services, contacts, appointments, InsertContact, InsertAppointment } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -85,4 +85,29 @@ export async function getUser(id: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Services queries
+export async function getServices() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(services);
+}
+
+// Contacts queries
+export async function createContact(contact: InsertContact) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(contacts).values(contact);
+}
+
+// Appointments queries
+export async function createAppointment(appointment: InsertAppointment) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(appointments).values(appointment);
+}
+
+export async function getAppointments() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(appointments);
+}
