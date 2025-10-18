@@ -7,13 +7,6 @@ import { trpc } from "@/lib/trpc";
 import { Wrench, Hammer, Droplet, Zap, Wind, Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from "lucide-react";
 
 export default function Home() {
-  const [contactForm, setContactForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
-
   const [appointmentForm, setAppointmentForm] = useState({
     name: "",
     email: "",
@@ -23,20 +16,7 @@ export default function Home() {
     description: "",
   });
 
-  const servicesQuery = trpc.services.list.useQuery();
-  const contactMutation = trpc.contacts.submit.useMutation();
   const appointmentMutation = trpc.appointments.create.useMutation();
-
-  const handleContactSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await contactMutation.mutateAsync(contactForm);
-      setContactForm({ name: "", email: "", phone: "", message: "" });
-      alert("Mensagem enviada com sucesso!");
-    } catch (error) {
-      alert("Erro ao enviar mensagem. Tente novamente.");
-    }
-  };
 
   const handleAppointmentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +62,6 @@ export default function Home() {
           </div>
           <nav className="hidden md:flex gap-8">
             <a href="#servicos" className="text-gray-700 hover:text-blue-600 transition">Serviços</a>
-            <a href="#contato" className="text-gray-700 hover:text-blue-600 transition">Contato</a>
             <a href="#agendamento" className="text-gray-700 hover:text-blue-600 transition">Agendar</a>
           </nav>
         </div>
@@ -126,108 +105,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contato" className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">Entre em Contato</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Contact Info */}
-            <div className="space-y-8">
-              <div className="flex gap-4">
-                <Phone className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Telefone</h3>
-                  <p className="text-gray-600">(11) 9999-9999</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <Mail className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Email</h3>
-                  <p className="text-gray-600">contato@broupalta.com.br</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <MapPin className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Localização</h3>
-                  <p className="text-gray-600">São Paulo, SP</p>
-                </div>
-              </div>
 
-              {/* Social Media */}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-4">Redes Sociais</h3>
-                <div className="flex gap-4">
-                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="bg-blue-600 p-3 rounded-lg hover:bg-blue-700 transition">
-                    <Facebook className="w-5 h-5 text-white" />
-                  </a>
-                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="bg-pink-600 p-3 rounded-lg hover:bg-pink-700 transition">
-                    <Instagram className="w-5 h-5 text-white" />
-                  </a>
-                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="bg-blue-700 p-3 rounded-lg hover:bg-blue-800 transition">
-                    <Linkedin className="w-5 h-5 text-white" />
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Envie uma Mensagem</CardTitle>
-                <CardDescription>Responderemos em breve</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleContactSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                    <Input
-                      type="text"
-                      placeholder="Seu nome"
-                      value={contactForm.name}
-                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <Input
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={contactForm.email}
-                      onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Telefone (opcional)</label>
-                    <Input
-                      type="tel"
-                      placeholder="(11) 9999-9999"
-                      value={contactForm.phone}
-                      onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mensagem</label>
-                    <Textarea
-                      placeholder="Sua mensagem aqui..."
-                      value={contactForm.message}
-                      onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                      required
-                      rows={4}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                    Enviar Mensagem
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
 
       {/* Appointment Section */}
       <section id="agendamento" className="py-16 md:py-24 bg-gray-50">
