@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, contacts, appointments, InsertContact, InsertAppointment } from "../drizzle/schema";
+import { InsertUser, users, appointments, InsertAppointment } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -19,8 +19,8 @@ export async function getDb() {
 }
 
 export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.id) {
-    throw new Error("User ID is required for upsert");
+  if (!user.openId) {
+    throw new Error("User openId is required for upsert");
   }
 
   const db = await getDb();
@@ -31,7 +31,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
   try {
     const values: InsertUser = {
-      id: user.id,
+      openId: user.openId,
     };
     const updateSet: Record<string, unknown> = {};
 
@@ -52,12 +52,16 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.lastSignedIn = user.lastSignedIn;
       updateSet.lastSignedIn = user.lastSignedIn;
     }
-    if (user.role === undefined) {
-      if (user.id === ENV.ownerId) {
-        user.role = 'admin';
-        values.role = 'admin';
-        updateSet.role = 'admin';
-      }
+    if (user.role !== undefined) {
+      values.role = user.role;
+      updateSet.role = user.role;
+    } else if (user.openId === ENV.ownerOpenId) {
+      values.role = 'admin';
+      updateSet.role = 'admin';
+    }
+
+    if (!values.lastSignedIn) {
+      values.lastSignedIn = new Date();
     }
 
     if (Object.keys(updateSet).length === 0) {
@@ -73,41 +77,43 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
-export async function getUser(id: string) {
+export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot get user: database not available");
     return undefined;
   }
 
-  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
 }
 
-// Services queries
-export async function getServices() {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(services);
-}
-
-// Contacts queries
-export async function createContact(contact: InsertContact) {
-  const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.insert(contacts).values(contact);
-}
-
-// Appointments queries
 export async function createAppointment(appointment: InsertAppointment) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
-  await db.insert(appointments).values(appointment);
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.insert(appointments).values(appointment);
+  return result;
 }
 
 export async function getAppointments() {
   const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(appointments);
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  return await db.select().from(appointments).orderBy(appointments.appointmentDate);
+}
+
+export async function getAppointmentById(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+
+  const result = await db.select().from(appointments).where(eq(appointments.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
 }

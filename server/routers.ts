@@ -3,8 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { createContact, createAppointment, getServices } from "./db";
-import { nanoid } from "nanoid";
+import { createAppointment, getAppointments } from "./db";
 
 export const appRouter = router({
   system: systemRouter,
@@ -20,47 +19,34 @@ export const appRouter = router({
     }),
   }),
 
-  services: router({
-    list: publicProcedure.query(async () => {
-      return await getServices();
-    }),
-  }),
-
-  contacts: router({
-    submit: publicProcedure
-      .input(z.object({
-        name: z.string().min(1),
-        email: z.string().email(),
-        phone: z.string().optional(),
-        message: z.string().min(1),
-      }))
-      .mutation(async ({ input }) => {
-        await createContact({
-          id: nanoid(),
-          ...input,
-        });
-        return { success: true };
-      }),
-  }),
-
   appointments: router({
     create: publicProcedure
       .input(z.object({
-        name: z.string().min(1),
-        email: z.string().email(),
-        phone: z.string().min(1),
-        serviceId: z.string().min(1),
+        clientName: z.string().min(1),
+        clientEmail: z.string().email(),
+        clientPhone: z.string().min(1),
+        serviceType: z.string().min(1),
+        serviceDescription: z.string().optional(),
+        address: z.string().min(1),
         appointmentDate: z.date(),
-        description: z.string().optional(),
+        appointmentTime: z.string().min(1),
       }))
       .mutation(async ({ input }) => {
-        await createAppointment({
-          id: nanoid(),
-          ...input,
-          status: "pending",
+        return createAppointment({
+          clientName: input.clientName,
+          clientEmail: input.clientEmail,
+          clientPhone: input.clientPhone,
+          serviceType: input.serviceType,
+          serviceDescription: input.serviceDescription,
+          address: input.address,
+          appointmentDate: input.appointmentDate,
+          appointmentTime: input.appointmentTime,
+          status: 'pendente',
         });
-        return { success: true };
       }),
+    list: publicProcedure.query(async () => {
+      return getAppointments();
+    }),
   }),
 });
 

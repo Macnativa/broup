@@ -1,4 +1,4 @@
-import { mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -6,60 +6,41 @@ import { mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mys
  * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  id: varchar("id", { length: 64 }).primaryKey(),
+  /**
+   * Surrogate primary key. Auto-incremented numeric value managed by the database.
+   * Use this for relations between tables.
+   */
+  id: int("id").autoincrement().primaryKey(),
+  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
+  openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
-  createdAt: timestamp("createdAt").defaultNow(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
- * Services offered by the company
- */
-export const services = mysqlTable("services", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  icon: varchar("icon", { length: 64 }),
-  createdAt: timestamp("createdAt").defaultNow(),
-});
-
-export type Service = typeof services.$inferSelect;
-export type InsertService = typeof services.$inferInsert;
-
-/**
- * Contact form submissions
- */
-export const contacts = mysqlTable("contacts", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 320 }).notNull(),
-  phone: varchar("phone", { length: 20 }),
-  message: text("message").notNull(),
-  createdAt: timestamp("createdAt").defaultNow(),
-});
-
-export type Contact = typeof contacts.$inferSelect;
-export type InsertContact = typeof contacts.$inferInsert;
-
-/**
- * Service appointments/scheduling
+ * Agendamentos de serviços
  */
 export const appointments = mysqlTable("appointments", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 320 }).notNull(),
-  phone: varchar("phone", { length: 20 }).notNull(),
-  serviceId: varchar("serviceId", { length: 64 }).notNull(),
+  id: int("id").autoincrement().primaryKey(),
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }).notNull(),
+  clientPhone: varchar("clientPhone", { length: 20 }).notNull(),
+  serviceType: varchar("serviceType", { length: 255 }).notNull(),
+  serviceDescription: text("serviceDescription"),
+  address: text("address").notNull(),
   appointmentDate: timestamp("appointmentDate").notNull(),
-  description: text("description"),
-  status: mysqlEnum("status", ["pending", "confirmed", "completed", "cancelled"]).default("pending").notNull(),
-  createdAt: timestamp("createdAt").defaultNow(),
+  appointmentTime: varchar("appointmentTime", { length: 5 }).notNull(),
+  status: mysqlEnum("status", ["pendente", "confirmado", "concluído", "cancelado"]).default("pendente").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Appointment = typeof appointments.$inferSelect;

@@ -2,67 +2,91 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
-import { Wrench, Hammer, Droplet, Zap, Wind, Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from "lucide-react";
+import { toast } from "sonner";
+import { Wrench, Droplet, Sofa, Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from "lucide-react";
+
+const SERVICES = [
+  { id: "eletrica", label: "Elétrica", icon: Wrench },
+  { id: "hidraulica", label: "Hidráulica", icon: Droplet },
+  { id: "moveis", label: "Montagem de Móveis", icon: Sofa },
+  { id: "outros", label: "Outros Serviços", icon: Wrench },
+];
 
 export default function Home() {
-  const [appointmentForm, setAppointmentForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    serviceId: "",
+  const [formData, setFormData] = useState({
+    clientName: "",
+    clientEmail: "",
+    clientPhone: "",
+    serviceType: "",
+    serviceDescription: "",
+    address: "",
     appointmentDate: "",
-    description: "",
+    appointmentTime: "",
   });
 
-  const appointmentMutation = trpc.appointments.create.useMutation();
-
-  const handleAppointmentSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const appointmentDate = new Date(appointmentForm.appointmentDate);
-      await appointmentMutation.mutateAsync({
-        ...appointmentForm,
-        appointmentDate,
-      });
-      setAppointmentForm({
-        name: "",
-        email: "",
-        phone: "",
-        serviceId: "",
+  const createAppointmentMutation = trpc.appointments.create.useMutation({
+    onSuccess: () => {
+      toast.success("Agendamento realizado com sucesso! Entraremos em contato em breve.");
+      setFormData({
+        clientName: "",
+        clientEmail: "",
+        clientPhone: "",
+        serviceType: "",
+        serviceDescription: "",
+        address: "",
         appointmentDate: "",
-        description: "",
+        appointmentTime: "",
       });
-      alert("Agendamento realizado com sucesso!");
-    } catch (error) {
-      alert("Erro ao agendar. Tente novamente.");
-    }
+    },
+    onError: (error) => {
+      toast.error(`Erro ao agendar: ${error.message}`);
+    },
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const services = [
-    { id: "1", name: "Pequenos Reparos", description: "Reparos gerais em residências e comércios", icon: Wrench },
-    { id: "2", name: "Montagem de Móveis", description: "Montagem profissional de móveis diversos", icon: Hammer },
-    { id: "3", name: "Manutenção Hidráulica", description: "Serviços de encanamento e manutenção hidráulica", icon: Droplet },
-    { id: "4", name: "Manutenção Elétrica", description: "Instalações e reparos elétricos seguros", icon: Zap },
-    { id: "5", name: "Manutenção de Ar Condicionado", description: "Limpeza, manutenção e reparo de AC", icon: Wind },
-  ];
+  const handleSelectChange = (value: string) => {
+    setFormData(prev => ({ ...prev, serviceType: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.clientName || !formData.clientEmail || !formData.clientPhone || 
+        !formData.serviceType || !formData.address || !formData.appointmentDate || !formData.appointmentTime) {
+      toast.error("Por favor, preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    createAppointmentMutation.mutate({
+      ...formData,
+      appointmentDate: new Date(formData.appointmentDate),
+    });
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+      {/* Header/Navigation */}
+      <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Broup Alta" className="h-12 w-auto" />
+            <img src="/logo.png" alt="Broup Manutenção" className="h-12 w-12" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Broup Alta</h1>
-              <p className="text-sm text-gray-600">Serviços de Reparo e Manutenção</p>
+              <h1 className="text-xl font-bold text-slate-900">Broup Manutenção</h1>
+              <p className="text-xs text-slate-600">Confiança vem com a excelência</p>
             </div>
           </div>
-          <nav className="hidden md:flex gap-8">
-            <a href="#servicos" className="text-gray-700 hover:text-blue-600 transition">Serviços</a>
-            <a href="#agendamento" className="text-gray-700 hover:text-blue-600 transition">Agendar</a>
+          <nav className="hidden md:flex gap-6">
+            <a href="#servicos" className="text-slate-700 hover:text-slate-900 font-medium">Serviços</a>
+            <a href="#agendamento" className="text-slate-700 hover:text-slate-900 font-medium">Agendar</a>
+            <a href="#contato" className="text-slate-700 hover:text-slate-900 font-medium">Contato</a>
           </nav>
         </div>
       </header>
@@ -70,33 +94,35 @@ export default function Home() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Soluções em Reparo e Manutenção</h2>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">Profissionais qualificados para resolver seus problemas</p>
-          <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-            <a href="#agendamento">Agendar Serviço Agora</a>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Soluções Completas em Manutenção</h2>
+          <p className="text-xl md:text-2xl mb-8 opacity-90">Elétrica • Hidráulica • Montagem de Móveis • E muito mais</p>
+          <Button 
+            size="lg" 
+            className="bg-white text-blue-600 hover:bg-slate-100 font-bold"
+            onClick={() => document.getElementById('agendamento')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            Agendar Serviço
           </Button>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="servicos" className="py-16 md:py-24 bg-gray-50">
+      {/* Serviços */}
+      <section id="servicos" className="py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">Nossos Serviços</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {services.map((service) => {
+          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 text-slate-900">Nossos Serviços</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {SERVICES.map((service) => {
               const IconComponent = service.icon;
               return (
-                <Card key={service.id} className="hover:shadow-lg transition">
+                <Card key={service.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
-                    <div className="flex justify-center mb-4">
-                      <div className="bg-blue-100 p-4 rounded-lg">
-                        <IconComponent className="w-8 h-8 text-blue-600" />
-                      </div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <IconComponent className="h-8 w-8 text-blue-600" />
+                      <CardTitle className="text-lg">{service.label}</CardTitle>
                     </div>
-                    <CardTitle className="text-center text-lg">{service.name}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600 text-center text-sm">{service.description}</p>
+                    <p className="text-slate-600">Serviço profissional de {service.label.toLowerCase()} com qualidade garantida.</p>
                   </CardContent>
                 </Card>
               );
@@ -105,85 +131,136 @@ export default function Home() {
         </div>
       </section>
 
-
-
-      {/* Appointment Section */}
-      <section id="agendamento" className="py-16 md:py-24 bg-gray-50">
+      {/* Formulário de Agendamento */}
+      <section id="agendamento" className="py-16 md:py-24 bg-white">
         <div className="container mx-auto px-4 max-w-2xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">Agendar Serviço</h2>
+          <h3 className="text-3xl md:text-4xl font-bold text-center mb-4 text-slate-900">Agende seu Serviço</h3>
+          <p className="text-center text-slate-600 mb-12">Preencha o formulário abaixo e entraremos em contato para confirmar seu agendamento.</p>
+          
           <Card>
             <CardHeader>
-              <CardTitle>Preencha os dados para agendar</CardTitle>
-              <CardDescription>Entraremos em contato para confirmar</CardDescription>
+              <CardTitle>Formulário de Agendamento</CardTitle>
+              <CardDescription>Todos os campos marcados com * são obrigatórios</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleAppointmentSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Nome */}
+                <div className="space-y-2">
+                  <Label htmlFor="clientName">Nome Completo *</Label>
                   <Input
-                    type="text"
+                    id="clientName"
+                    name="clientName"
+                    value={formData.clientName}
+                    onChange={handleInputChange}
                     placeholder="Seu nome"
-                    value={appointmentForm.name}
-                    onChange={(e) => setAppointmentForm({ ...appointmentForm, name: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="clientEmail">Email *</Label>
                   <Input
+                    id="clientEmail"
+                    name="clientEmail"
                     type="email"
+                    value={formData.clientEmail}
+                    onChange={handleInputChange}
                     placeholder="seu@email.com"
-                    value={appointmentForm.email}
-                    onChange={(e) => setAppointmentForm({ ...appointmentForm, email: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+
+                {/* Telefone */}
+                <div className="space-y-2">
+                  <Label htmlFor="clientPhone">Telefone *</Label>
                   <Input
-                    type="tel"
-                    placeholder="(11) 9999-9999"
-                    value={appointmentForm.phone}
-                    onChange={(e) => setAppointmentForm({ ...appointmentForm, phone: e.target.value })}
+                    id="clientPhone"
+                    name="clientPhone"
+                    value={formData.clientPhone}
+                    onChange={handleInputChange}
+                    placeholder="(11) 99999-9999"
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Serviço</label>
-                  <select
-                    value={appointmentForm.serviceId}
-                    onChange={(e) => setAppointmentForm({ ...appointmentForm, serviceId: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Selecione um serviço</option>
-                    {services.map((service) => (
-                      <option key={service.id} value={service.id}>
-                        {service.name}
-                      </option>
-                    ))}
-                  </select>
+
+                {/* Tipo de Serviço */}
+                <div className="space-y-2">
+                  <Label htmlFor="serviceType">Tipo de Serviço *</Label>
+                  <Select value={formData.serviceType} onValueChange={handleSelectChange}>
+                    <SelectTrigger id="serviceType">
+                      <SelectValue placeholder="Selecione um serviço" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICES.map((service) => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Data e Hora</label>
-                  <Input
-                    type="datetime-local"
-                    value={appointmentForm.appointmentDate}
-                    onChange={(e) => setAppointmentForm({ ...appointmentForm, appointmentDate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descrição do Problema (opcional)</label>
+
+                {/* Descrição do Serviço */}
+                <div className="space-y-2">
+                  <Label htmlFor="serviceDescription">Descrição do Serviço</Label>
                   <Textarea
-                    placeholder="Descreva o problema ou serviço desejado..."
-                    value={appointmentForm.description}
-                    onChange={(e) => setAppointmentForm({ ...appointmentForm, description: e.target.value })}
+                    id="serviceDescription"
+                    name="serviceDescription"
+                    value={formData.serviceDescription}
+                    onChange={handleInputChange}
+                    placeholder="Descreva o serviço que você precisa..."
                     rows={4}
                   />
                 </div>
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                  Agendar Serviço
+
+                {/* Endereço */}
+                <div className="space-y-2">
+                  <Label htmlFor="address">Endereço *</Label>
+                  <Textarea
+                    id="address"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    placeholder="Rua, número, complemento, cidade"
+                    rows={3}
+                    required
+                  />
+                </div>
+
+                {/* Data */}
+                <div className="space-y-2">
+                  <Label htmlFor="appointmentDate">Data do Agendamento *</Label>
+                  <Input
+                    id="appointmentDate"
+                    name="appointmentDate"
+                    type="date"
+                    value={formData.appointmentDate}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Hora */}
+                <div className="space-y-2">
+                  <Label htmlFor="appointmentTime">Hora Preferida *</Label>
+                  <Input
+                    id="appointmentTime"
+                    name="appointmentTime"
+                    type="time"
+                    value={formData.appointmentTime}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                {/* Botão de Envio */}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={createAppointmentMutation.isPending}
+                >
+                  {createAppointmentMutation.isPending ? "Agendando..." : "Agendar Serviço"}
                 </Button>
               </form>
             </CardContent>
@@ -191,32 +268,93 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8 mt-auto">
+      {/* Contato */}
+      <section id="contato" className="py-16 md:py-24 bg-slate-900 text-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="font-semibold mb-4">Sobre Nós</h3>
-              <p className="text-gray-400">Broup Alta oferece serviços profissionais de reparo e manutenção com qualidade garantida.</p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Serviços</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#servicos" className="hover:text-white transition">Pequenos Reparos</a></li>
-                <li><a href="#servicos" className="hover:text-white transition">Montagem de Móveis</a></li>
-                <li><a href="#servicos" className="hover:text-white transition">Manutenção Hidráulica</a></li>
-                <li><a href="#servicos" className="hover:text-white transition">Manutenção Elétrica</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Contato</h3>
-              <p className="text-gray-400 mb-2">Telefone: (11) 9999-9999</p>
-              <p className="text-gray-400">Email: contato@broupalta.com.br</p>
+          <h3 className="text-3xl md:text-4xl font-bold text-center mb-12">Entre em Contato</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Telefone */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Phone className="h-6 w-6 text-blue-400" />
+                  <CardTitle className="text-white">Telefone</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-300">(19) 98959 9329</p>
+                <p className="text-slate-400 text-sm mt-2">Seg-Sex: 8h às 18h</p>
+              </CardContent>
+            </Card>
+
+            {/* Email */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-6 w-6 text-blue-400" />
+                  <CardTitle className="text-white">Email</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-300">contato@broup.com.br</p>
+                <p className="text-slate-400 text-sm mt-2">Resposta em até 24h</p>
+              </CardContent>
+            </Card>
+
+            {/* Localização */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-6 w-6 text-blue-400" />
+                  <CardTitle className="text-white">Localização</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-300">Campinas, SP</p>
+                <p className="text-slate-400 text-sm mt-2">Atendimento em toda a região</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Redes Sociais */}
+          <div className="text-center">
+            <h4 className="text-lg font-semibold mb-6">Siga-nos nas Redes Sociais</h4>
+            <div className="flex justify-center gap-6">
+              <a 
+                href="https://facebook.com/broup" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-3 bg-blue-600 rounded-full hover:bg-blue-700 transition"
+              >
+                <Facebook className="h-6 w-6" />
+              </a>
+              <a 
+                href="https://instagram.com/broup" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-3 bg-pink-600 rounded-full hover:bg-pink-700 transition"
+              >
+                <Instagram className="h-6 w-6" />
+              </a>
+              <a 
+                href="https://linkedin.com/company/broup" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="p-3 bg-blue-700 rounded-full hover:bg-blue-800 transition"
+              >
+                <Linkedin className="h-6 w-6" />
+              </a>
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Broup Alta. Todos os direitos reservados.</p>
-          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-950 text-slate-400 py-8 border-t border-slate-800">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; 2025 Broup Manutenção e Reparos. Todos os direitos reservados.</p>
+          <p className="text-sm mt-2">Confiança vem com a excelência</p>
         </div>
       </footer>
     </div>

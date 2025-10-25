@@ -92,10 +92,7 @@ export async function storagePut(
   return { key, url };
 }
 
-export async function storageGet(
-  relKey: string,
-  _expiresIn = 300
-): Promise<{ key: string; url: string; }> {
+export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
   const { baseUrl, apiKey } = getStorageConfig();
   const key = normalizeKey(relKey);
   return {

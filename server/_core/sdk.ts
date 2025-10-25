@@ -160,17 +160,17 @@ class SDKServer {
   }
 
   /**
-   * Create a session token for a user ID
+   * Create a session token for a Manus user openId
    * @example
-   * const sessionToken = await sdk.createSessionToken(userInfo.id);
+   * const sessionToken = await sdk.createSessionToken(userInfo.openId);
    */
   async createSessionToken(
-    userId: string,
+    openId: string,
     options: { expiresInMs?: number; name?: string } = {}
   ): Promise<string> {
     return this.signSession(
       {
-        openId: userId,
+        openId,
         appId: ENV.appId,
         name: options.name || "",
       },
@@ -268,20 +268,20 @@ class SDKServer {
 
     const sessionUserId = session.openId;
     const signedInAt = new Date();
-    let user = await db.getUser(sessionUserId);
+    let user = await db.getUserByOpenId(sessionUserId);
 
     // If user not in DB, sync from OAuth server automatically
     if (!user) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
         await db.upsertUser({
-          id: userInfo.openId,
+          openId: userInfo.openId,
           name: userInfo.name || null,
           email: userInfo.email ?? null,
           loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
           lastSignedIn: signedInAt,
         });
-        user = await db.getUser(userInfo.openId);
+        user = await db.getUserByOpenId(userInfo.openId);
       } catch (error) {
         console.error("[Auth] Failed to sync user from OAuth:", error);
         throw ForbiddenError("Failed to sync user info");
@@ -293,7 +293,7 @@ class SDKServer {
     }
 
     await db.upsertUser({
-      id: user.id,
+      openId: user.openId,
       lastSignedIn: signedInAt,
     });
 

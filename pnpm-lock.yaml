@@ -264,8 +264,8 @@ importers:
         specifier: ^7.1.7
         version: 7.1.9(@types/node@24.7.0)(jiti@2.6.1)(lightningcss@1.30.1)(tsx@4.20.6)
       vite-plugin-manus-runtime:
-        specifier: ^0.0.42
-        version: 0.0.42
+        specifier: ^0.0.52
+        version: 0.0.52
       vitest:
         specifier: ^2.1.4
         version: 2.1.9(@types/node@24.7.0)(lightningcss@1.30.1)
@@ -2194,9 +2194,6 @@ packages:
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
 
-  '@zumer/snapdom@1.9.14':
-    resolution: {integrity: sha512-kQARFS/jf+fsIFv9qxfNp8YMeun5tTyhFDk3iv47Lywk5YRldhINWicEZI15fP3FDUCeo8ok+BP0CtnDRFMFRg==}
-
   accepts@1.3.8:
     resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
     engines: {node: '>= 0.6'}
@@ -3376,8 +3373,8 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
-  vite-plugin-manus-runtime@0.0.42:
-    resolution: {integrity: sha512-+k/i9OxlJYhuLviOrwtZaAlL2AUQlJyTWwXhcYujYrTFiAqjDmhJM9qILysZWUKQfCV6Su5zLXmJ7L5rJ3oLew==}
+  vite-plugin-manus-runtime@0.0.52:
+    resolution: {integrity: sha512-1iaVk0N/1PFmFZKb9fXHYRYiE05umjnhy+A5z0izJjgekYe7rCjkq98ytU5g5E9vrHrx5ZoOW03KQE8lIMOL2g==}
 
   vite@5.4.20:
     resolution: {integrity: sha512-j3lYzGC3P+B5Yfy/pfKNgVEg4+UtcIJcVRt2cDjIOmhLourAqPqf8P7acgxeiSgUB7E3p2P8/3gNIgDLpwzs4g==}
@@ -5693,8 +5690,6 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 1.2.0
 
-  '@zumer/snapdom@1.9.14': {}
-
   accepts@1.3.8:
     dependencies:
       mime-types: 2.1.35
@@ -6799,10 +6794,9 @@ snapshots:
       - supports-color
       - terser
 
-  vite-plugin-manus-runtime@0.0.42:
+  vite-plugin-manus-runtime@0.0.52:
     dependencies:
       '@medv/finder': 4.0.2
-      '@zumer/snapdom': 1.9.14
       clsx: 2.1.1
       modern-screenshot: 4.6.6
       nanoid: 5.1.6
