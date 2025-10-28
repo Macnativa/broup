@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { createAppointment, getAppointments } from "./db";
+import { sendAppointmentEmail } from "./_core/email";
 
 export const appRouter = router({
   system: systemRouter,
@@ -32,7 +33,7 @@ export const appRouter = router({
         appointmentTime: z.string().min(1),
       }))
       .mutation(async ({ input }) => {
-        return createAppointment({
+        const result = await createAppointment({
           clientName: input.clientName,
           clientEmail: input.clientEmail,
           clientPhone: input.clientPhone,
@@ -43,6 +44,17 @@ export const appRouter = router({
           appointmentTime: input.appointmentTime,
           status: 'pendente',
         });
+
+        // Enviar email de confirmação
+        await sendAppointmentEmail(
+          input.clientEmail,
+          input.clientName,
+          input.serviceType,
+          input.appointmentDate,
+          input.appointmentTime
+        );
+
+        return result;
       }),
     list: publicProcedure.query(async () => {
       return getAppointments();
